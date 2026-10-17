@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+
+    name: PHP ${{ matrix.php }}
+
+    services:
+      clamav:
+        image: clamav/clamav-debian:1.4
+        ports:
+          - 3310:3310
+
+    env:
+      CLAMD_SOCKET: tcp://127.0.0.1:3310
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - run: composer validate --strict
+
+      - run: composer update --prefer-dist --no-progress
+
+      - name: Wait for clamd to load its signatures
+        run: |
+          for i in $(seq 1 60); do
+            php -r 'require "vendor/autoload.php"; exit((new KraenzleRitter\ClamavScan\ClamdScanner(getenv("CLAMD_SOCKET"), 2.0))->isAvailable() ? 0 : 1);' && exit 0
+            sleep 5
+          done
+          echo "clamd did not answer within 5 minutes" && exit 1
+
+      - run: composer test
+
+      - run: composer analyse
