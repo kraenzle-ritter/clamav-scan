@@ -24,7 +24,8 @@ interface Scanner
 
     /**
      * Engine and signature version, e.g. `ClamAV 1.4.3/27430/Thu Oct 16
-     * 08:30:00 2026`; null when the scanner does not answer.
+     * 08:30:00 2026`; null when the scanner does not answer or does not
+     * tell (clamd with `EnableVersionCommand no`).
      */
     public function version(): ?string;
 

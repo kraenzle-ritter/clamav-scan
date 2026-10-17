@@ -56,6 +56,9 @@ That is not a verdict on the file. A missing or unreadable file throws a
 
 `version()` returns engine and signature version
 (`ClamAV 1.4.3/27430/Thu Oct 16 08:30:00 2026`); record it with the result.
+It is null when clamd does not answer, or does not tell: Debian and Ubuntu
+ship ClamAV 1.5 with `EnableVersionCommand no` — set it to `yes` if you
+need the signature version.
 
 `scanStream($stream, $name)` scans an open stream, e.g. an upload that is
 not on disk yet.

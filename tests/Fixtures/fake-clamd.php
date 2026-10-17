@@ -12,6 +12,8 @@ declare(strict_types=1);
  *               silent  — reads the command, closes without an answer
  *               hang    — reads the command, never answers
  *               garbage — answers INSTREAM with something unexpected
+ *               noversion — VERSION disabled (EnableVersionCommand no, the
+ *                           Debian/Ubuntu default since ClamAV 1.5)
  *   max-length  StreamMaxLength in bytes (default 1048576)
  *
  * Prints the address it listens on, then serves until killed.
@@ -116,7 +118,7 @@ while (true) {
 
     $answer = match ($command) {
         'zPING' => 'PONG',
-        'zVERSION' => 'ClamAV 1.4.3/27430/Fake clamd',
+        'zVERSION' => $mode === 'noversion' ? 'COMMAND UNAVAILABLE' : 'ClamAV 1.4.3/27430/Fake clamd',
         'zINSTREAM' => $mode === 'garbage' ? 'stream: who knows' : instream($connection, $maxLength),
         default => 'UNKNOWN COMMAND',
     };

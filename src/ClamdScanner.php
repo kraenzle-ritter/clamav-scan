@@ -61,13 +61,20 @@ final class ClamdScanner implements Scanner
         }
     }
 
+    /**
+     * Null also when clamd refuses the command: Debian and Ubuntu ship
+     * ClamAV 1.5 with `EnableVersionCommand no`, and clamd then answers
+     * `COMMAND UNAVAILABLE`.
+     */
     public function version(): ?string
     {
         try {
-            return $this->command('VERSION');
+            $answer = $this->command('VERSION');
         } catch (ConnectionException) {
             return null;
         }
+
+        return str_starts_with($answer, 'ClamAV ') ? $answer : null;
     }
 
     public function scan(string $path): ScanResult

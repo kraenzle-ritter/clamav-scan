@@ -56,6 +56,14 @@ final class ClamdScannerTest extends TestCase
         $this->assertSame('ClamAV 1.4.3/27430/Fake clamd', $this->scanner()->version());
     }
 
+    public function test_the_version_is_null_when_clamd_does_not_tell(): void
+    {
+        $scanner = $this->scanner('noversion');
+
+        $this->assertTrue($scanner->isAvailable());
+        $this->assertNull($scanner->version());
+    }
+
     public function test_a_clean_file_is_clean(): void
     {
         $path = $this->file('letter.txt', 'Sehr geehrte Damen und Herren');
