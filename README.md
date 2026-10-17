@@ -1,5 +1,12 @@
 # kraenzle-ritter/clamav-scan
 
+[![CI](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml)
+[![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/clamav-scan)](https://packagist.org/packages/kraenzle-ritter/clamav-scan)
+[![Downloads](https://img.shields.io/packagist/dt/kraenzle-ritter/clamav-scan)](https://packagist.org/packages/kraenzle-ritter/clamav-scan)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue)](https://www.php.net/)
+[![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 Scans files for malware with ClamAV. Used by agate (SIP preparation) and
 Anton (archival description), so that both check uploads the same way and
 against the same clamd.
@@ -9,6 +16,12 @@ TCP socket with `zINSTREAM`, so clamd never has to read the file itself: no
 shared paths between containers, no file permissions for the clamav user.
 It has no dependencies beyond PHP 8.2 and does not depend on Laravel; each
 application binds it in its own way.
+
+## Installation
+
+```bash
+composer require kraenzle-ritter/clamav-scan
+```
 
 ## Use
 
