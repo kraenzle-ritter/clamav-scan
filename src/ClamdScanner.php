@@ -19,7 +19,7 @@ use KraenzleRitter\ClamavScan\Exception\FileNotReadableException;
  * answer. `INSTREAM` takes chunks of a 4-byte length in network byte order
  * followed by the data, and a chunk of length zero to end the stream.
  */
-final class ClamdScanner implements Scanner
+final class ClamdScanner implements RangeScanner
 {
     public const DEFAULT_SOCKET = 'unix:///var/run/clamav/clamd.ctl';
 
@@ -95,15 +95,38 @@ final class ClamdScanner implements Scanner
         }
     }
 
+    public function scanRange(string $path, int $offset, int $length): ScanResult
+    {
+        if ($offset < 0 || $length < 1) {
+            throw new \InvalidArgumentException('A range needs an offset of at least 0 and a length of at least 1 byte.');
+        }
+        if (! is_file($path) || ! is_readable($path)) {
+            throw FileNotReadableException::forPath($path);
+        }
+
+        $file = @fopen($path, 'rb');
+        if ($file === false || fseek($file, $offset) !== 0) {
+            throw FileNotReadableException::forPath($path);
+        }
+
+        try {
+            return $this->scanStream($file, $path, $length);
+        } finally {
+            fclose($file);
+        }
+    }
+
     /**
-     * Scans whatever the stream yields from its current position to its end.
+     * Scans whatever the stream yields from its current position to its end,
+     * or the next `$length` bytes of it.
      *
      * @param  resource  $stream
      * @param  string  $path  what the result names; the stream itself has no path
+     * @param  int|null  $length  at most this many bytes; null: to the end
      *
      * @throws ConnectionException
      */
-    public function scanStream($stream, string $path = 'stream'): ScanResult
+    public function scanStream($stream, string $path = 'stream', ?int $length = null): ScanResult
     {
         $connection = $this->connect();
 
@@ -112,13 +135,17 @@ final class ClamdScanner implements Scanner
                 throw new ConnectionException("clamd at {$this->socket} closed the connection before the scan.");
             }
 
-            while (! feof($stream)) {
-                $chunk = fread($stream, $this->chunkSize);
+            $left = $length;
+            while (! feof($stream) && ($left === null || $left > 0)) {
+                $chunk = fread($stream, $left === null ? $this->chunkSize : max(1, min($this->chunkSize, $left)));
                 if ($chunk === false) {
                     throw FileNotReadableException::forPath($path);
                 }
                 if ($chunk === '') {
                     continue;
+                }
+                if ($left !== null) {
+                    $left -= strlen($chunk);
                 }
 
                 if (! $this->write($connection, pack('N', strlen($chunk)).$chunk)) {

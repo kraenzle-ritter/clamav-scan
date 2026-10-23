@@ -14,7 +14,7 @@ use KraenzleRitter\ClamavScan\Exception\FileNotReadableException;
  * the full path or the file name), and files that contain the EICAR test
  * string. Records every path it was asked to scan.
  */
-final class FakeScanner implements Scanner
+final class FakeScanner implements RangeScanner
 {
     /** @var list<string> */
     private array $scanned = [];
@@ -50,6 +50,27 @@ final class FakeScanner implements Scanner
 
     public function scan(string $path): ScanResult
     {
+        return $this->judge($path, $path, fn (): string => (string) file_get_contents($path));
+    }
+
+    /**
+     * Patterns match the file as they do for scan(); EICAR is found only
+     * where it lies within the range. Recorded as `path@offset+length`.
+     */
+    public function scanRange(string $path, int $offset, int $length): ScanResult
+    {
+        if ($offset < 0 || $length < 1) {
+            throw new \InvalidArgumentException('A range needs an offset of at least 0 and a length of at least 1 byte.');
+        }
+
+        return $this->judge($path, "{$path}@{$offset}+{$length}", fn (): string => (string) file_get_contents($path, false, null, $offset, $length));
+    }
+
+    /**
+     * @param  callable(): string  $content
+     */
+    private function judge(string $path, string $recorded, callable $content): ScanResult
+    {
         if (! $this->available) {
             throw new ConnectionException('FakeScanner is unavailable.');
         }
@@ -57,7 +78,7 @@ final class FakeScanner implements Scanner
             throw FileNotReadableException::forPath($path);
         }
 
-        $this->scanned[] = $path;
+        $this->scanned[] = $recorded;
 
         if (($message = $this->match($path, $this->errors)) !== null) {
             return ScanResult::error($path, $message);
@@ -65,7 +86,7 @@ final class FakeScanner implements Scanner
         if (($signature = $this->match($path, $this->infected)) !== null) {
             return ScanResult::infected($path, $signature);
         }
-        if ($this->detectEicar && Eicar::isIn((string) file_get_contents($path))) {
+        if ($this->detectEicar && Eicar::isIn($content())) {
             return ScanResult::infected($path, Eicar::SIGNATURE);
         }
 

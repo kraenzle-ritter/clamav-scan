@@ -84,6 +84,21 @@ final class FakeScannerTest extends TestCase
         $this->assertSame([$a, $b], $scanner->scanned());
     }
 
+    public function test_a_range_finds_eicar_only_where_it_lies(): void
+    {
+        $scanner = new FakeScanner(infected: ['*.exe' => 'Win.Trojan.Fake']);
+        $path = $this->dir.'/film.mp4';
+        file_put_contents($path, str_repeat('a', 1000).Eicar::string().str_repeat('b', 1000));
+
+        $this->assertTrue($scanner->scanRange($path, 900, 200)->isInfected());
+        $this->assertTrue($scanner->scanRange($path, 0, 900)->isClean());
+        $this->assertSame([$path.'@900+200', $path.'@0+900'], $scanner->scanned());
+
+        $exe = $this->dir.'/a.exe';
+        file_put_contents($exe, 'x');
+        $this->assertSame('Win.Trojan.Fake', $scanner->scanRange($exe, 0, 1)->signature, 'patterns match the file');
+    }
+
     public function test_an_unavailable_scanner_throws_like_a_missing_clamd(): void
     {
         $scanner = FakeScanner::unavailable();

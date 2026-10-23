@@ -61,7 +61,22 @@ ship ClamAV 1.5 with `EnableVersionCommand no` — set it to `yes` if you
 need the signature version.
 
 `scanStream($stream, $name)` scans an open stream, e.g. an upload that is
-not on disk yet.
+not on disk yet; `scanStream($stream, $name, $length)` only its next
+`$length` bytes.
+
+### Files over 2 GB
+
+ClamAV cannot scan a file over 2 GB. `ClamdScanner` and `FakeScanner` are
+`RangeScanner`s: `scanRange($path, $offset, $length)` scans part of a file,
+so a large one can be scanned in overlapping parts. That is weaker than a
+scan of the whole file: clamd sees the bytes of each part, not the format.
+Signatures by byte pattern are found; those anchored at the end of the file
+or tied to its structure, and hashes of the whole file, are not. Record such
+a file as scanned in parts, not as clean.
+
+```php
+$result = $scanner->scanRange('/path/to/film.mp4', 268_435_456, 268_435_456);
+```
 
 ### Options
 

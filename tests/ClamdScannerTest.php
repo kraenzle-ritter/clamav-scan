@@ -120,6 +120,25 @@ final class ClamdScannerTest extends TestCase
         $this->assertSame('INSTREAM size limit exceeded.', $result->message);
     }
 
+    public function test_a_range_sends_only_its_bytes(): void
+    {
+        $path = $this->file('big.bin', str_repeat('a', 200_000).Eicar::string().str_repeat('b', 200_000));
+        $scanner = $this->scanner(maxLength: 150_000, chunkSize: 8192);
+
+        $this->assertTrue($scanner->scanRange($path, 190_000, 100_000)->isInfected(), 'EICAR lies within the range');
+        $this->assertTrue($scanner->scanRange($path, 0, 100_000)->isClean(), 'EICAR lies beyond it');
+        $this->assertTrue($scanner->scanRange($path, 300_000, 100_000)->isClean(), 'EICAR lies before it');
+        $this->assertTrue($scanner->scanRange($path, 350_000, 100_000)->isClean(), 'a range past the end of the file is shorter');
+        $this->assertTrue($scanner->scan($path)->isError(), 'the whole file is over the limit');
+    }
+
+    public function test_a_range_needs_a_length(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->scanner()->scanRange($this->file('a.txt', 'a'), 0, 0);
+    }
+
     public function test_an_unexpected_answer_is_an_error(): void
     {
         $result = $this->scanner('garbage')->scan($this->file('a.txt', 'a'));
