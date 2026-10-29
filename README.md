@@ -1,5 +1,7 @@
 # kraenzle-ritter/clamav-scan
 
+<p align="center"><img src="art/mungo.png" alt="Mungo, Zeichnung im Stil eines Holzstichs" width="360"></p>
+
 [![CI](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml)
 [![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/clamav-scan)](https://packagist.org/packages/kraenzle-ritter/clamav-scan)
 [![Downloads](https://img.shields.io/packagist/dt/kraenzle-ritter/clamav-scan)](https://packagist.org/packages/kraenzle-ritter/clamav-scan)
