@@ -1,6 +1,11 @@
 # kraenzle-ritter/clamav-scan
 
-<p align="center"><img src="art/mungo.png" alt="A mongoose, drawn in the style of a wood engraving" width="360"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="art/mungo-dark.png">
+    <img src="art/mungo.png" alt="A mongoose, drawn in the style of a wood engraving" width="360">
+  </picture>
+</p>
 
 [![CI](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/kraenzle-ritter/clamav-scan/actions/workflows/ci.yml)
 [![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/clamav-scan)](https://packagist.org/packages/kraenzle-ritter/clamav-scan)
